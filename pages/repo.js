@@ -75,7 +75,7 @@ export default function Repo() {
   async function handleFetchRepo(param = 'nextjs') {
     setRepo({ ...repo, loading: true })
     try {
-      const response = await axios.get('\${process.env.API_URL} /api/repos/\${param}');
+      const response = await axios.get('\${process.env.API_URL}/api/repos/\${param}');
       setRepo({ ...repo, data: response.data, loading: false })
     } catch (err) {
       console.error(err)
