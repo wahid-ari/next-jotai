@@ -1,20 +1,29 @@
 import Head from 'next/head'
 import Navbar from '@components/Navbar';
-import { useRepoStore } from '@store/useStore';
 import Code from '@components/Code';
+import { useAtom } from 'jotai';
+import { repoAtom } from '@store/useAtom';
+import axios from 'axios';
 
 export default function Repo() {
 
-  const repo = useRepoStore(state => state.repo)
-  const loading = useRepoStore(state => state.loading)
-  const hasErrors = useRepoStore(state => state.hasErrors)
-  const fetchRepo = useRepoStore(state => state.fetchRepo)
-  const resetRepo = useRepoStore(state => state.resetRepo)
-  // useEffect(() => {
-  //   fetchRepo(`${process.env.API_URL}/api/users/vercel`)
-  // }, [])
-  function handleFetchRepo(param) {
-    fetchRepo(param)
+  const [repo, setRepo] = useAtom(repoAtom)
+  async function handleFetchRepo(param = 'nextjs') {
+    setRepo({ ...repo, loading: true })
+    try {
+      const response = await axios.get(`${process.env.API_URL}/api/repos/${param}`);
+      setRepo({ ...repo, data: response.data, loading: false })
+    } catch (err) {
+      console.error(err)
+      setRepo({ ...repo, hasErrors: true, loading: false })
+    }
+  }
+  function resetRepo() {
+    setRepo({
+      data: {},
+      loading: false,
+      hasErrors: false
+    })
   }
 
   return (
@@ -33,72 +42,65 @@ export default function Repo() {
           <h1 className="dark:text-white text-2xl font-semibold">Repo Data 🧑‍💻</h1>
 
           <div className="my-8 dark:text-white">
-            <p>Loading : {loading ? 'true' : 'false'}</p>
-            <p className="mb-2">hasErrors : {hasErrors ? 'true' : 'false'}</p>
-            <p>Name : {repo.name}</p>
-            <p>Full Name : {repo.full_name}</p>
-            <p>Language : {repo.language}</p>
-            <p>Homepage : {repo.homepage ? <a className="text-blue-500 hover:text-blue-600 transition-all cursor-pointer" href={repo.homepage} target="_blank" rel="noreferrer">{repo.homepage}</a> : "-"}</p>
-            <p>Description : {repo.description}</p>
-            <p>Repo URL : {repo.repo_url ? <a className="text-blue-500 hover:text-blue-600 transition-all cursor-pointer" href={repo.repo_url} target="_blank" rel="noreferrer">{repo.repo_url}</a> : "-"}</p>
-            <p>License : {repo.license}</p>
-            <p>Owner : {repo.owner}</p>
+            <p>Loading : {repo.loading ? 'true' : 'false'}</p>
+            <p className="mb-2">hasErrors : {repo.hasErrors ? 'true' : 'false'}</p>
+            <p>Name : {repo.data.name}</p>
+            <p>Full Name : {repo.data.full_name}</p>
+            <p>Language : {repo.data.language}</p>
+            <p>Homepage : {repo.data.homepage ? <a className="text-blue-500 hover:text-blue-600 transition-all cursor-pointer" href={repo.data.homepage} target="_blank" rel="noreferrer">{repo.data.homepage}</a> : "-"}</p>
+            <p>Description : {repo.data.description}</p>
+            <p>Repo URL : {repo.data.repo_url ? <a className="text-blue-500 hover:text-blue-600 transition-all cursor-pointer" href={repo.data.repo_url} target="_blank" rel="noreferrer">{repo.data.repo_url}</a> : "-"}</p>
+            <p>License : {repo.data.license}</p>
+            <p>Owner : {repo.data.owner}</p>
             <button onClick={() => handleFetchRepo()} className="bg-blue-500 hover:bg-blue-600 transition-all cursor-pointer text-white rounded py-1 px-2 text-sm mt-2 mr-2">Fetch repo</button>
             <button onClick={() => handleFetchRepo('react')} className="bg-blue-500 hover:bg-blue-600 transition-all cursor-pointer text-white rounded py-1 px-2 text-sm mt-2 mr-2">Fetch react</button>
             <button onClick={resetRepo} className="bg-orange-500 hover:bg-orange-600 transition-all cursor-pointer text-white rounded py-1 px-2 text-sm mr-2">Reset repo</button>
           </div>
 
-          <Code name="store/useStore" code={`import create from 'zustand';
-import axios from "axios";
+          <Code name="store/useAtom" code={`import { atom } from 'jotai';
 
-export const useRepoStore = create((set) => ({
-  repo: {},
+export const repoAtom = atom({
+  data: {},
   loading: false,
-  hasErrors: false,
-  fetchRepo: async (param = 'nextjs') => {
-    const url = '\${process.env.API_URL}/api/repos/\${param}'
-    set(() => ({ loading: true }));
-    try {
-      const response = await axios.get(url);
-      set((state) => ({ repo: (state.repo = response.data), loading: false }));
-    } catch (err) {
-      set(() => ({ hasErrors: true, loading: false }));
-    }
-  },
-  resetRepo: () => set({
-    repo: {},
-    loading: false,
-    hasErrors: false,
-  })
-}));`} />
+  hasErrors: false
+})`} />
 
-          <Code name="pages/repo" code={`import { useRepoStore } from '@store/useStore';
+          <Code name="pages/repo" code={`import { useAtom } from 'jotai';
+import { repoAtom } from '@store/useAtom';
+import axios from 'axios';
 
 export default function Repo() {
 
-  const repo = useRepoStore(state => state.repo)
-  const loading = useRepoStore(state => state.loading)
-  const hasErrors = useRepoStore(state => state.hasErrors)
-  const fetchRepo = useRepoStore(state => state.fetchRepo)
-  const resetRepo = useRepoStore(state => state.resetRepo)
-  // useEffect(() => {
-  //   fetchRepo('nuxtjs')
-  // }, [])
-  function handleFetchRepo(param) {
-    fetchRepo(param)
+  const [repo, setRepo] = useAtom(repoAtom)
+  async function handleFetchRepo(param = 'nextjs') {
+    setRepo({ ...repo, loading: true })
+    try {
+      const response = await axios.get('\${process.env.API_URL} /api/repos/\${param}');
+      setRepo({ ...repo, data: response.data, loading: false })
+    } catch (err) {
+      console.error(err)
+      setRepo({ ...repo, hasErrors: true, loading: false })
+    }
+  }
+  function resetRepo() {
+    setRepo({
+      data: {},
+      loading: false,
+      hasErrors: false
+    })
   }
 
   return (
-    <p>Loading : {loading ? 'true' : 'false'}</p>
-    <p>hasErrors : {hasErrors ? 'true' : 'false'}</p>
-    <p>Name : {repo.name}</p>
-    <p>Full Name : {repo.full_name}</p>
-    <p>Language : {repo.language}</p>
-    <p>Homepage : {repo.homepage ? <a>{repo.homepage}</a> : "-"}</p>
-    <p>Description : {repo.description}</p>
-    <p>Repo URL : {repo.repo_url ? <a>{repo.repo_url}</a> : "-"}</p>
-    <p>License : {repo.license}</p>
-    <p>Owner : {repo.owner}</p>
+    <p>Loading : {repo.loading ? 'true' : 'false'}</p>
+    <p>hasErrors : {repo.hasErrors ? 'true' : 'false'}</p>
+    <p>Name : {repo.data.name}</p>
+    <p>Full Name : {repo.data.full_name}</p>
+    <p>Language : {repo.data.language}</p>
+    <p>Homepage : {repo.data.homepage ? <a>{repo.data.homepage}</a> : "-"}</p>
+    <p>Description : {repo.data.description}</p>
+    <p>Repo URL : {repo.data.repo_url ? <a>{repo.data.repo_url}</a> : "-"}</p>
+    <p>License : {repo.data.license}</p>
+    <p>Owner : {repo.data.owner}</p>
     <button onClick={() => handleFetchRepo()}>Fetch repo</button>
     <button onClick={() => handleFetchRepo('react')}>Fetch react</button>
     <button onClick={resetRepo}>Reset repo</button>

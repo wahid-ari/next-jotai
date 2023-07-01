@@ -1,29 +1,39 @@
 import Head from 'next/head'
 import Navbar from '@components/Navbar';
-import { useRef, useState, useEffect } from 'react';
-import { usePokemonStore } from '@store/useStore';
 import Code from '@components/Code';
+import { useRef } from 'react';
+import { useAtom } from 'jotai';
+import { pokemonAtom } from '@store/useAtom';
 
 export default function Pokemon() {
 
+  const [pokemons, setPokemons] = useAtom(pokemonAtom)
   const pokemonNameRef = useRef()
-  const pokemons = usePokemonStore(state => state.pokemons)
-  const addPokemon = usePokemonStore(state => state.addPokemon)
-  const removePokemon = usePokemonStore(state => state.removePokemon)
-  const removeAllPokemons = usePokemonStore(state => state.removeAllPokemons)
-  const restoreAllPokemons = usePokemonStore(state => state.restoreAllPokemons)
-  const [localPokemon, setLocalPokemon] = useState([])
-  useEffect(() => {
-    setLocalPokemon(pokemons)
-  }, [pokemons])
+  function removeAllPokemons() {
+    setPokemons([])
+  }
+  function restoreAllPokemons() {
+    setPokemons([
+      { id: 1, name: "🐞 Bulbasaur" },
+      { id: 2, name: "🦖 Ivysaur" },
+      { id: 3, name: "🐙 Venusaur" },
+      { id: 4, name: "🐉 Charmander" },
+      { id: 5, name: "🐧 Charmeleon" }
+    ])
+  }
   function handleAddPokemon() {
     const value = pokemonNameRef.current.value
-    if (value !== "") addPokemon(value)
+    if (value !== "") {
+      setPokemons([
+        ...pokemons,
+        { name: value, id: Math.random() * 100 },
+      ])
+    }
     else alert("pokemon name cannot empty !")
     pokemonNameRef.current.value = ''
   }
   function handleRemovePokemon(id) {
-    removePokemon(id)
+    setPokemons(pokemons.filter((pokemon) => pokemon.id !== id))
   }
 
   return (
@@ -43,14 +53,14 @@ export default function Pokemon() {
 
           <div className="my-8 dark:text-white">
             <ul className="dark:text-white my-2 space-y-2">
-              {localPokemon.map(pokemon =>
+              {pokemons.map(pokemon =>
                 <li key={pokemon.id}>
                   {pokemon.name}
                   <button onClick={() => handleRemovePokemon(pokemon.id)} className={`bg-red-500 hover:bg-red-600 font-medium transition-all cursor-pointer text-white rounded px-1.5 text-sm ml-2`}>X</button>
                 </li>
               )}
             </ul>
-            <span className="mt-2 dark:text-white">{localPokemon.length} pokemons found</span>
+            <span className="mt-2 dark:text-white">{pokemons.length} pokemons found</span>
             <p className="dark:text-white my-2">Add a new pokemon</p>
             <div className="mb-2">
               <input ref={pokemonNameRef} className="px-1.5 mr-2 h-7 border border-gray-300 dark:border-neutral-700 rounded bg-gray-100 dark:bg-neutral-800 dark:text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500" />
@@ -60,83 +70,61 @@ export default function Pokemon() {
             <button onClick={restoreAllPokemons} className="bg-teal-500 hover:bg-teal-600 transition-all cursor-pointer text-white rounded py-1 px-2 text-sm mr-2">restore all</button>
           </div>
 
-          <Code name="store/useStore" code={`import create from 'zustand';
-import { persist } from 'zustand/middleware';
+          <Code name="store/useAtom" code={`import { atomWithStorage } from 'jotai/utils';
 
-export const usePokemonStore = create(
-  persist(
-    (set, get) => ({
-      pokemons: [
-        { id: 1, name: "🐞 Bulbasaur" },
-        { id: 2, name: "🦖 Ivysaur" },
-        { id: 3, name: "🐙 Venusaur" },
-        { id: 4, name: "🐉 Charmander" },
-        { id: 5, name: "🐧 Charmeleon" }
-      ],
-      addPokemon: (name) =>
-        set((state) => ({
-          pokemons: [
-            ...state.pokemons,
-            { name: name, id: Math.random() * 100 },
-          ]
-        })),
-      removePokemon: (id) =>
-        set((state) => ({
-          pokemons: state.pokemons.filter((pokemon) => pokemon.id !== id),
-        })),
-      removeAllPokemons: () => set({ pokemons: [] }),
-      restoreAllPokemons: () => set({
-        pokemons: [
-          { id: 1, name: "🐞 Bulbasaur" },
-          { id: 2, name: "🦖 Ivysaur" },
-          { id: 3, name: "🐙 Venusaur" },
-          { id: 4, name: "🐉 Charmander" },
-          { id: 5, name: "🐧 Charmeleon" }
-        ]
-      })
-    }),
-    {
-      name: 'pokemon-storage',
-      getStorage: () => localStorage,
-    }
-  )
-);`} />
+export const pokemonAtom = atomWithStorage('pokemon', [
+  { id: 1, name: "🐞 Bulbasaur" },
+  { id: 2, name: "🦖 Ivysaur" },
+  { id: 3, name: "🐙 Venusaur" },
+  { id: 4, name: "🐉 Charmander" },
+  { id: 5, name: "🐧 Charmeleon" }
+])`} />
 
-          <Code name="pages/pokemon" code={`import { useRef, useState, useEffect } from 'react';
-import { usePokemonStore } from '@store/useStore';
+          <Code name="pages/pokemon" code={`import { useRef } from 'react';
+import { useAtom } from 'jotai';
+import { pokemonAtom } from '@store/useAtom';
 
 export default function Pokemon() {
 
+  const [pokemons, setPokemons] = useAtom(pokemonAtom)
   const pokemonNameRef = useRef()
-  const pokemons = usePokemonStore(state => state.pokemons)
-  const addPokemon = usePokemonStore(state => state.addPokemon)
-  const removePokemon = usePokemonStore(state => state.removePokemon)
-  const removeAllPokemons = usePokemonStore(state => state.removeAllPokemons)
-  const restoreAllPokemons = usePokemonStore(state => state.restoreAllPokemons)
-  const [localPokemon, setLocalPokemon] = useState([])
-  useEffect(() => {
-    setLocalPokemon(pokemons)
-  }, [pokemons])
+  function removeAllPokemons() {
+    setPokemons([])
+  }
+  function restoreAllPokemons() {
+    setPokemons([
+      { id: 1, name: "🐞 Bulbasaur" },
+      { id: 2, name: "🦖 Ivysaur" },
+      { id: 3, name: "🐙 Venusaur" },
+      { id: 4, name: "🐉 Charmander" },
+      { id: 5, name: "🐧 Charmeleon" }
+    ])
+  }
   function handleAddPokemon() {
     const value = pokemonNameRef.current.value
-    if (value !== "") addPokemon(value)
+    if (value !== "") {
+      setPokemons([
+        ...pokemons,
+        { name: value, id: Math.random() * 100 },
+      ])
+    }
     else alert("pokemon name cannot empty !")
     pokemonNameRef.current.value = ''
   }
   function handleRemovePokemon(id) {
-    removePokemon(id)
+    setPokemons(pokemons.filter((pokemon) => pokemon.id !== id))
   }
 
   return (
     <ul>
-      {localPokemon.map(pokemon =>
+      {pokemons.map(pokemon =>
         <li key={pokemon.id}>
           {pokemon.name}
           <button onClick={() => handleRemovePokemon(pokemon.id)}>X</button>
         </li>
       )}
     </ul>
-    <span>{localPokemon.length} pokemons found</span>
+    <span>{pokemons.length} pokemons found</span>
     <p>Add a new pokemon</p>
     <div>
       <input ref={pokemonNameRef} />

@@ -1,11 +1,7 @@
 import Head from 'next/head'
 import Navbar from '@components/Navbar';
-import {
-  usePokemonStore,
-  useStudentStore,
-  useRepoStore
-} from '@store/useStore';
-import { useState, useEffect, useRef } from 'react';
+import axios from "axios";
+import { useState, useRef } from 'react';
 
 import { useAtom } from 'jotai';
 import {
@@ -16,7 +12,10 @@ import {
   sharkAtom,
   fishAtom,
   fruitsAtom,
-  userAtom
+  userAtom,
+  repoAtom,
+  pokemonAtom,
+  studentAtom
 } from '@store/useAtom';
 
 export default function Home() {
@@ -66,39 +65,94 @@ export default function Home() {
     setUser({})
   }
 
+  const [repo, setRepo] = useAtom(repoAtom)
+  async function handleFetchRepo(param = 'nextjs') {
+    setRepo({ ...repo, loading: true })
+    try {
+      const response = await axios.get(`${process.env.API_URL}/api/repos/${param}`);
+      setRepo({ ...repo, data: response.data, loading: false })
+    } catch (err) {
+      console.error(err)
+      setRepo({ ...repo, hasErrors: true, loading: false })
+    }
+  }
+  function resetRepo() {
+    setRepo({
+      data: {},
+      loading: false,
+      hasErrors: false
+    })
+  }
+
+  const [pokemons, setPokemons] = useAtom(pokemonAtom)
   const pokemonNameRef = useRef()
-  const pokemons = usePokemonStore(state => state.pokemons)
-  const addPokemon = usePokemonStore(state => state.addPokemon)
-  const removePokemon = usePokemonStore(state => state.removePokemon)
-  const removeAllPokemons = usePokemonStore(state => state.removeAllPokemons)
-  const restoreAllPokemons = usePokemonStore(state => state.restoreAllPokemons)
-  const [localPokemon, setLocalPokemon] = useState([])
-  useEffect(() => {
-    setLocalPokemon(pokemons)
-  }, [pokemons])
+  function removeAllPokemons() {
+    setPokemons([])
+  }
+  function restoreAllPokemons() {
+    setPokemons([
+      { id: 1, name: "🐞 Bulbasaur" },
+      { id: 2, name: "🦖 Ivysaur" },
+      { id: 3, name: "🐙 Venusaur" },
+      { id: 4, name: "🐉 Charmander" },
+      { id: 5, name: "🐧 Charmeleon" }
+    ])
+  }
   function handleAddPokemon() {
     const value = pokemonNameRef.current.value
-    if (value !== "") addPokemon(value)
+    if (value !== "") {
+      setPokemons([
+        ...pokemons,
+        { name: value, id: Math.random() * 100 },
+      ])
+    }
     else alert("pokemon name cannot empty !")
     pokemonNameRef.current.value = ''
   }
   function handleRemovePokemon(id) {
-    removePokemon(id)
+    setPokemons(pokemons.filter((pokemon) => pokemon.id !== id))
   }
 
+  const [students, setStudents] = useAtom(studentAtom)
   const studentNameRef = useRef()
   const [editedId, setEditedId] = useState()
   const [editedName, setEditedName] = useState()
   const [showEdit, setShowEdit] = useState(false)
-  const students = useStudentStore(state => state.students)
-  const addStudent = useStudentStore(state => state.addStudent)
-  const removeStudent = useStudentStore(state => state.removeStudent)
-  const removeAllStudents = useStudentStore(state => state.removeAllStudents)
-  const updateStudent = useStudentStore(state => state.updateStudent)
-  const restoreAllStudents = useStudentStore(state => state.restoreAllStudents)
+  function removeStudent(id) {
+    setStudents(students.filter((student) => student.id !== id))
+  }
+  function removeAllStudents() {
+    setStudents([])
+  }
+  function restoreAllStudents() {
+    setStudents([
+      { id: '1', name: 'Aaron Saunders' },
+      { id: '2', name: 'Andrea Saunders' },
+      { id: '3', name: 'Bill Smith' },
+      { id: '4', name: 'John Chambers' },
+      { id: '5', name: 'Joe Johnson' }
+    ])
+  }
+  function updateStudent(id, name) {
+    setStudents(students.map(item => {
+      if (item.id === id) {
+        return {
+          ...item,
+          name: name
+        };
+      } else {
+        return item;
+      }
+    }))
+  }
   function handleAddStudent() {
     const value = studentNameRef.current.value
-    if (value !== "") addStudent(value)
+    if (value !== "") {
+      setStudents([
+        ...students,
+        { name: value, id: Math.random() * 100 },
+      ])
+    }
     else alert("student name cannot empty !")
     studentNameRef.current.value = ''
   }
@@ -120,18 +174,6 @@ export default function Home() {
   }
   function handleRemoveStudent(id) {
     removeStudent(id)
-  }
-
-  const repo = useRepoStore(state => state.repo)
-  const loading = useRepoStore(state => state.loading)
-  const hasErrors = useRepoStore(state => state.hasErrors)
-  const fetchRepo = useRepoStore(state => state.fetchRepo)
-  const resetRepo = useRepoStore(state => state.resetRepo)
-  // useEffect(() => {
-  //   fetchRepo(`${process.env.API_URL}/api/users/vercel`)
-  // }, [])
-  function handleFetchRepo(param) {
-    fetchRepo(param)
   }
 
   return (
@@ -252,16 +294,16 @@ export default function Home() {
 
           <div className="my-10 dark:text-white">
             <h1 className="text-lg font-medium mb-2">Repo Data 🧑‍💻</h1>
-            <p>Loading : {loading ? 'true' : 'false'}</p>
-            <p className="mb-2">hasErrors : {hasErrors ? 'true' : 'false'}</p>
-            <p>Name : {repo.name}</p>
-            <p>Full Name : {repo.full_name}</p>
-            <p>Language : {repo.language}</p>
-            <p>Homepage : {repo.homepage ? <a className="text-blue-500 hover:text-blue-600 transition-all cursor-pointer" href={repo.homepage} target="_blank" rel="noreferrer">{repo.homepage}</a> : "-"}</p>
-            <p>Description : {repo.description}</p>
-            <p>Repo URL : {repo.repo_url ? <a className="text-blue-500 hover:text-blue-600 transition-all cursor-pointer" href={repo.repo_url} target="_blank" rel="noreferrer">{repo.repo_url}</a> : "-"}</p>
-            <p>License : {repo.license}</p>
-            <p>Owner : {repo.owner}</p>
+            <p>Loading : {repo.loading ? 'true' : 'false'}</p>
+            <p className="mb-2">hasErrors : {repo.hasErrors ? 'true' : 'false'}</p>
+            <p>Name : {repo.data.name}</p>
+            <p>Full Name : {repo.data.full_name}</p>
+            <p>Language : {repo.data.language}</p>
+            <p>Homepage : {repo.data.homepage ? <a className="text-blue-500 hover:text-blue-600 transition-all cursor-pointer" href={repo.data.homepage} target="_blank" rel="noreferrer">{repo.data.homepage}</a> : "-"}</p>
+            <p>Description : {repo.data.description}</p>
+            <p>Repo URL : {repo.data.repo_url ? <a className="text-blue-500 hover:text-blue-600 transition-all cursor-pointer" href={repo.data.repo_url} target="_blank" rel="noreferrer">{repo.data.repo_url}</a> : "-"}</p>
+            <p>License : {repo.data.license}</p>
+            <p>Owner : {repo.data.owner}</p>
             <button onClick={() => handleFetchRepo()} className="bg-blue-500 hover:bg-blue-600 transition-all cursor-pointer text-white rounded py-1 px-2 text-sm mt-2 mr-2">Fetch repo</button>
             <button onClick={() => handleFetchRepo('react')} className="bg-blue-500 hover:bg-blue-600 transition-all cursor-pointer text-white rounded py-1 px-2 text-sm mt-2 mr-2">Fetch react</button>
             <button onClick={resetRepo} className="bg-orange-500 hover:bg-orange-600 transition-all cursor-pointer text-white rounded py-1 px-2 text-sm mr-2">Reset repo</button>
@@ -272,14 +314,14 @@ export default function Home() {
           <div className="my-10">
             <h1 className="text-lg font-medium mb-2 dark:text-white">Pokemon Data 🐞 🦖 🐙 🐉 🐧</h1>
             <ul className="dark:text-white my-2 space-y-2">
-              {localPokemon.map(pokemon =>
-                <li key={pokemon.id}>
-                  {pokemon.name}
-                  <button onClick={() => handleRemovePokemon(pokemon.id)} className={`bg-red-500 hover:bg-red-600 font-medium transition-all cursor-pointer text-white rounded px-1.5 text-sm ml-2`}>X</button>
+              {pokemons.map(item =>
+                <li key={item.id}>
+                  {item.name}
+                  <button onClick={() => handleRemovePokemon(item.id)} className={`bg-red-500 hover:bg-red-600 font-medium transition-all cursor-pointer text-white rounded px-1.5 text-sm ml-2`}>X</button>
                 </li>
               )}
             </ul>
-            <span className="mt-2 dark:text-white">{localPokemon.length} pokemons found</span>
+            <span className="mt-2 dark:text-white">{pokemons.length} pokemons found</span>
             <p className="dark:text-white my-2">Add a new pokemon</p>
             <div className="mb-2">
               <input ref={pokemonNameRef} className="px-1.5 mr-2 h-7 border border-gray-300 dark:border-neutral-700 rounded bg-gray-100 dark:bg-neutral-800 dark:text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500" />
@@ -290,7 +332,7 @@ export default function Home() {
             <p className="text-gray-500 dark:text-gray-300 mt-2 text-sm">try change here and visit /Pokemon, the value will be same</p>
             <p className="text-gray-500 dark:text-gray-300 text-sm">if we refreshed the page, the value will be same as the last value</p>
             <p className="text-gray-500 dark:text-gray-300 text-sm">this is example how to use jotai persist to save state to localStorage</p>
-            <p className="text-gray-500 dark:text-gray-300 text-sm">if we see in Application &gt; Local Storage, it will show &apos;pokemon-storage&apos; with current pokemon value</p>
+            <p className="text-gray-500 dark:text-gray-300 text-sm">if we see in Application &gt; Local Storage, it will show &apos;pokemon&apos; with current pokemon value</p>
           </div>
 
           <div className="my-10">

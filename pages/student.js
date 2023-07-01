@@ -1,24 +1,52 @@
 import Head from 'next/head'
 import Navbar from '@components/Navbar';
-import { useRef, useState } from 'react';
-import { useStudentStore } from '@store/useStore';
 import Code from '@components/Code';
+import { useRef, useState } from 'react';
+import { useAtom } from 'jotai';
+import { studentAtom } from '@store/useAtom';
 
 export default function Student() {
 
+  const [students, setStudents] = useAtom(studentAtom)
   const studentNameRef = useRef()
   const [editedId, setEditedId] = useState()
   const [editedName, setEditedName] = useState()
   const [showEdit, setShowEdit] = useState(false)
-  const students = useStudentStore(state => state.students)
-  const addStudent = useStudentStore(state => state.addStudent)
-  const removeStudent = useStudentStore(state => state.removeStudent)
-  const removeAllStudents = useStudentStore(state => state.removeAllStudents)
-  const updateStudent = useStudentStore(state => state.updateStudent)
-  const restoreAllStudents = useStudentStore(state => state.restoreAllStudents)
+  function removeStudent(id) {
+    setStudents(students.filter((student) => student.id !== id))
+  }
+  function removeAllStudents() {
+    setStudents([])
+  }
+  function restoreAllStudents() {
+    setStudents([
+      { id: '1', name: 'Aaron Saunders' },
+      { id: '2', name: 'Andrea Saunders' },
+      { id: '3', name: 'Bill Smith' },
+      { id: '4', name: 'John Chambers' },
+      { id: '5', name: 'Joe Johnson' }
+    ])
+  }
+  function updateStudent(id, name) {
+    setStudents(students.map(item => {
+      if (item.id === id) {
+        return {
+          ...item,
+          name: name
+        };
+      } else {
+        return item;
+      }
+    }))
+  }
   function handleAddStudent() {
     const value = studentNameRef.current.value
-    if (value !== "") addStudent(value)
+    if (value !== "") {
+      setStudents([
+        ...students,
+        { name: value, id: Math.random() * 100 },
+      ])
+    }
     else alert("student name cannot empty !")
     studentNameRef.current.value = ''
   }
@@ -87,57 +115,19 @@ export default function Student() {
             <button onClick={restoreAllStudents} className="bg-teal-500 hover:bg-teal-600 transition-all cursor-pointer text-white rounded py-1 px-2 text-sm mr-2">restore all</button>
           </div>
 
-          <Code name="store/useStore" code={`import create from 'zustand';
+          <Code name="store/useAtom" code={`import { atom } from 'jotai';
           
-export const useStudentStore = create(set => ({
-  students: [
-    { id: '1', name: 'Aaron Saunders' },
-    { id: '2', name: 'Andrea Saunders' },
-    { id: '3', name: 'Bill Smith' },
-    { id: '4', name: 'John Chambers' },
-    { id: '5', name: 'Joe Johnson' }
-  ],
-  addStudent: (name) =>
-    set(state => ({
-      students: [
-        ...state.students,
-        {
-          name: name,
-          id: Math.random() * 100 + '',
-        }
-      ]
-    })),
-  removeStudent: (id) =>
-    set(state => ({
-      students: state.students.filter(student => student.id !== id)
-    })),
-  updateStudent: (id, name) =>
-    set(state => ({
-      students: state.students.map(item => {
-        if (item.id === id) {
-          return {
-            ...item,
-            name: name
-          };
-        } else {
-          return item;
-        }
-      })
-    })),
-  removeAllStudents: () => set({ students: [] }),
-  restoreAllStudents: () => set({
-    students: [
-      { id: '1', name: 'Aaron Saunders' },
-      { id: '2', name: 'Andrea Saunders' },
-      { id: '3', name: 'Bill Smith' },
-      { id: '4', name: 'John Chambers' },
-      { id: '5', name: 'Joe Johnson' }
-    ]
-  })
-}));`} />
+export const studentAtom = atom([
+  { id: '1', name: 'Aaron Saunders' },
+  { id: '2', name: 'Andrea Saunders' },
+  { id: '3', name: 'Bill Smith' },
+  { id: '4', name: 'John Chambers' },
+  { id: '5', name: 'Joe Johnson' }
+])`} />
 
           <Code name="pages/student" code={`import { useRef, useState } from 'react';
-import { useStudentStore } from '@store/useStore';
+import { useAtom } from 'jotai';
+import { studentAtom } from '@store/useAtom';
 
 export default function Student() {
 
@@ -145,15 +135,42 @@ export default function Student() {
   const [editedId, setEditedId] = useState()
   const [editedName, setEditedName] = useState()
   const [showEdit, setShowEdit] = useState(false)
-  const students = useStudentStore(state => state.students)
-  const addStudent = useStudentStore(state => state.addStudent)
-  const removeStudent = useStudentStore(state => state.removeStudent)
-  const removeAllStudents = useStudentStore(state => state.removeAllStudents)
-  const updateStudent = useStudentStore(state => state.updateStudent)
-  const restoreAllStudents = useStudentStore(state => state.restoreAllStudents)
+  const [students, setStudents] = useAtom(studentAtom)
+  function removeStudent(id) {
+    setStudents(students.filter((student) => student.id !== id))
+  }
+  function removeAllStudents() {
+    setStudents([])
+  }
+  function restoreAllStudents() {
+    setStudents([
+      { id: '1', name: 'Aaron Saunders' },
+      { id: '2', name: 'Andrea Saunders' },
+      { id: '3', name: 'Bill Smith' },
+      { id: '4', name: 'John Chambers' },
+      { id: '5', name: 'Joe Johnson' }
+    ])
+  }
+  function updateStudent(id, name) {
+    setStudents(students.map(item => {
+      if (item.id === id) {
+        return {
+          ...item,
+          name: name
+        };
+      } else {
+        return item;
+      }
+    }))
+  }
   function handleAddStudent() {
     const value = studentNameRef.current.value
-    if (value !== "") addStudent(value)
+    if (value !== "") {
+      setStudents([
+        ...students,
+        { name: value, id: Math.random() * 100 + '' },
+      ])
+    }
     else alert("student name cannot empty !")
     studentNameRef.current.value = ''
   }

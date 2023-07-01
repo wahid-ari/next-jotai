@@ -1,18 +1,19 @@
 import Head from 'next/head'
 import Navbar from '@components/Navbar';
-import { useUserStore } from '@store/useStore';
 import Code from '@components/Code';
+import { useAtom } from 'jotai';
+import { userAtom } from '@store/useAtom';
 
 export default function User() {
 
-  const user = useUserStore(state => state.user)
-  const fetch = useUserStore(state => state.fetch)
-  const resetUser = useUserStore(state => state.reset)
-  // useEffect(() => {
-  //   fetch(`${process.env.API_URL}/api/users/vercel`)
-  // }, [])
-  function handleFetch() {
-    fetch(`${process.env.API_URL}/api/users/vercel`)
+  const [user, setUser] = useAtom(userAtom)
+  async function handleFetch() {
+    const response = await fetch(`${process.env.API_URL}/api/users/vercel`);
+    const json = await response.json();
+    setUser(json)
+  }
+  function resetUser() {
+    setUser({})
   }
 
   return (
@@ -42,30 +43,23 @@ export default function User() {
             <button onClick={resetUser} className="bg-orange-500 hover:bg-orange-600 transition-all cursor-pointer text-white rounded py-1 px-2 text-sm mr-2">Reset user</button>
           </div>
 
-          <Code name="store/useStore" code={`import create from 'zustand';
+          <Code name="store/useAtom" code={`import { atom } from 'jotai'
 
-export const useUserStore = create((set) => ({
-  user: {},
-  fetch: async (url) => {
-    const response = await fetch(url);
-    const json = await response.json();
-    set({ user: json })
-  },
-  reset: () => set({ user: {} })
-}))`} />
+export const userAtom = atom({})`} />
 
-          <Code name="pages/user" code={`import { useUserStore } from '@store/useStore';
+          <Code name="pages/user" code={`import { useAtom } from 'jotai';
+import { userAtom } from '@store/useAtom';
 
 export default function User() {
 
-  const user = useUserStore(state => state.user)
-  const fetch = useUserStore(state => state.fetch)
-  const resetUser = useUserStore(state => state.reset)
-  // useEffect(() => {
-  //   fetch('\${process.env.API_URL}/api/users/vercel')
-  // }, [])
-  function handleFetch() {
-    fetch('\${process.env.API_URL}/api/users/vercel')
+  const [user, setUser] = useAtom(userAtom)
+  async function handleFetch() {
+    const response = await fetch('\${process.env.API_URL}/api/users/vercel');
+    const json = await response.json();
+    setUser(json)
+  }
+  function resetUser() {
+    setUser({})
   }
 
   return (
