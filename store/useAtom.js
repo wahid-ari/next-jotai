@@ -9,3 +9,4 @@ export const sharkAtom = atom(3)
 // Set the string key and the initial value
 export const fishAtom = atomWithStorage('fish', 4)
 export const fruitsAtom = atom(['apple 🍏', 'banana 🍌', 'orange 🍊'])
+export const userAtom = atom({})
