@@ -2,14 +2,14 @@
 	"compilerOptions": {
 		"baseUrl": "./",
 		"paths": {
-			"@public/*": ["public/*"],
 			"@components/*": ["components/*"],
-			"@styles/*": ["styles/*"],
-			"@utils/*": ["utils/*"],
-			"@pages/*": ["pages/*"],
 			"@data/*": ["data/*"],
-			"@libs/*": ["libs/*"],
-			"@store/*": ["store/*"]
+			"@hooks/*": ["hooks/*"],
+			"@pages/*": ["pages/*"],
+			"@public/*": ["public/*"],
+			"@store/*": ["store/*"],
+			"@styles/*": ["styles/*"],
+			"@utils/*": ["utils/*"]
 		}
 	},
 	"exclude": ["node_modules"]

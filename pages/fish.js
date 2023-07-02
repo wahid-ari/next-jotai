@@ -22,7 +22,8 @@ export default function Fish() {
 
         <div className="max-w-5xl px-4 mx-auto pt-4 class">
           <h1 className="dark:text-white text-2xl font-semibold">Fish Data 🐟</h1>
-
+          <p className="text-gray-500 dark:text-gray-300 text-sm">this is example how to use jotai persist to save state to localStorage</p>
+          <p className="text-gray-500 dark:text-gray-300 text-sm">if we see in Application &gt; Local Storage, it will show &apos;fish&apos; with current fish value</p>
           <div className="my-8">
             <p className="dark:text-white my-2">{fish} fishs around here</p>
             <button onClick={() => setFish(fish + 1)} className={`bg-blue-500 hover:bg-blue-600 transition-all cursor-pointer text-white rounded py-1 px-2 text-sm mr-2`}>increase</button>

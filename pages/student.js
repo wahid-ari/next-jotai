@@ -2,72 +2,40 @@ import Head from 'next/head'
 import Navbar from '@components/Navbar';
 import Code from '@components/Code';
 import { useRef, useState } from 'react';
-import { useAtom } from 'jotai';
+import { useAtomValue } from 'jotai';
 import { studentAtom } from '@store/useAtom';
+import { useStudents } from '@hooks/useStudents';
 
 export default function Student() {
 
-  const [students, setStudents] = useAtom(studentAtom)
+  const students = useAtomValue(studentAtom)
+  const { addStudent,
+    updateStudent,
+    removeStudent,
+    removeAllStudents,
+    restoreAllStudents } = useStudents()
   const studentNameRef = useRef()
-  const [editedId, setEditedId] = useState()
-  const [editedName, setEditedName] = useState()
-  const [showEdit, setShowEdit] = useState(false)
-  function removeStudent(id) {
-    setStudents(students.filter((student) => student.id !== id))
-  }
-  function removeAllStudents() {
-    setStudents([])
-  }
-  function restoreAllStudents() {
-    setStudents([
-      { id: '1', name: 'Aaron Saunders' },
-      { id: '2', name: 'Andrea Saunders' },
-      { id: '3', name: 'Bill Smith' },
-      { id: '4', name: 'John Chambers' },
-      { id: '5', name: 'Joe Johnson' }
-    ])
-  }
-  function updateStudent(id, name) {
-    setStudents(students.map(item => {
-      if (item.id === id) {
-        return {
-          ...item,
-          name: name
-        };
-      } else {
-        return item;
-      }
-    }))
-  }
+  const [edited, setEdited] = useState({ id: null, name: '', show: false })
+
   function handleAddStudent() {
     const value = studentNameRef.current.value
-    if (value !== "") {
-      setStudents([
-        ...students,
-        { name: value, id: Math.random() * 100 },
-      ])
-    }
+    if (value !== "") addStudent(value)
     else alert("student name cannot empty !")
     studentNameRef.current.value = ''
   }
+
   function handleEditStudent(id, name) {
-    setEditedId(id)
-    setEditedName(name)
-    setShowEdit(true)
+    setEdited({ id: id, name: name, show: true })
   }
+
   function handleUpdateStudent() {
-    if (editedName === "") {
+    if (edited.name === "") {
       alert("student name cannot empty !")
     }
     else {
-      updateStudent(editedId, editedName)
-      setShowEdit(false)
-      setEditedId('')
-      setEditedName('')
+      updateStudent(edited.id, edited.name)
+      setEdited({ id: null, name: '', show: false })
     }
-  }
-  function handleRemoveStudent(id) {
-    removeStudent(id)
   }
 
   return (
@@ -91,7 +59,7 @@ export default function Student() {
                 <li key={student.id}>
                   {student.name}
                   <button onClick={() => handleEditStudent(student.id, student.name)} className={`bg-yellow-500 hover:bg-yellow-600 font-medium transition-all cursor-pointer text-white rounded text-sm ml-2`}>✏️</button>
-                  <button onClick={() => handleRemoveStudent(student.id)} className={`bg-red-500 hover:bg-red-600 font-medium transition-all cursor-pointer text-white rounded px-1.5 text-sm ml-2`}>X</button>
+                  <button onClick={() => removeStudent(student.id)} className={`bg-red-500 hover:bg-red-600 font-medium transition-all cursor-pointer text-white rounded px-1.5 text-sm ml-2`}>X</button>
                 </li>
               )}
             </ul>
@@ -101,11 +69,11 @@ export default function Student() {
               <input ref={studentNameRef} className="px-1.5 mr-2 h-7 border border-gray-300 dark:border-neutral-700 rounded bg-gray-100 dark:bg-neutral-800 dark:text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500" />
               <button onClick={handleAddStudent} className={`bg-blue-500 hover:bg-blue-600 transition-all cursor-pointer text-white rounded py-1 px-2 text-sm mr-2`}>add student</button>
             </div>
-            {showEdit &&
+            {edited.show &&
               <>
                 <p className="dark:text-white my-2">Edit student</p>
                 <div className="mb-4">
-                  <input value={editedName} onChange={(e) => setEditedName(e.target.value)} className="px-1.5 mr-2 h-7 border border-gray-300 dark:border-neutral-700 rounded bg-gray-100 dark:bg-neutral-800 dark:text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500" />
+                  <input value={edited.name} onChange={(e) => setEdited({ ...edited, name: e.target.value })} className="px-1.5 mr-2 h-7 border border-gray-300 dark:border-neutral-700 rounded bg-gray-100 dark:bg-neutral-800 dark:text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500" />
                   <button onClick={handleUpdateStudent} className={`bg-violet-500 hover:bg-violet-600 transition-all cursor-pointer text-white rounded py-1 px-2 text-sm mr-2`}>Update student</button>
                   <button onClick={() => setShowEdit(false)} className={`bg-orange-500 hover:bg-orange-600 transition-all cursor-pointer text-white rounded py-1 px-2 text-sm mr-2`}>Cancel</button>
                 </div>
@@ -117,38 +85,24 @@ export default function Student() {
 
           <Code name="store/useAtom" code={`import { atom } from 'jotai';
           
-export const studentAtom = atom([
+export const studentData = [
   { id: '1', name: 'Aaron Saunders' },
   { id: '2', name: 'Andrea Saunders' },
   { id: '3', name: 'Bill Smith' },
   { id: '4', name: 'John Chambers' },
   { id: '5', name: 'Joe Johnson' }
-])`} />
+]
+export const studentAtom = atom(studentData)`} />
+          
+          <Code name="hooks/useStudents" code={`import { useAtom } from 'jotai';
+import { studentAtom, studentData } from '@store/useAtom';
 
-          <Code name="pages/student" code={`import { useRef, useState } from 'react';
-import { useAtom } from 'jotai';
-import { studentAtom } from '@store/useAtom';
-
-export default function Student() {
-
-  const studentNameRef = useRef()
-  const [editedId, setEditedId] = useState()
-  const [editedName, setEditedName] = useState()
-  const [showEdit, setShowEdit] = useState(false)
+export function useStudents() {
   const [students, setStudents] = useAtom(studentAtom)
-  function removeStudent(id) {
-    setStudents(students.filter((student) => student.id !== id))
-  }
-  function removeAllStudents() {
-    setStudents([])
-  }
-  function restoreAllStudents() {
+  function addStudent(name) {
     setStudents([
-      { id: '1', name: 'Aaron Saunders' },
-      { id: '2', name: 'Andrea Saunders' },
-      { id: '3', name: 'Bill Smith' },
-      { id: '4', name: 'John Chambers' },
-      { id: '5', name: 'Joe Johnson' }
+      ...students,
+      { name: name, id: Math.random() * 100 },
     ])
   }
   function updateStudent(id, name) {
@@ -163,35 +117,59 @@ export default function Student() {
       }
     }))
   }
+  function removeStudent(id) {
+    setStudents(students.filter((student) => student.id !== id))
+  }
+  function removeAllStudents() {
+    setStudents([])
+  }
+  function restoreAllStudents() {
+    setStudents(studentData)
+  }
+  return {
+    addStudent,
+    updateStudent,
+    removeStudent,
+    removeAllStudents,
+    restoreAllStudents
+  }
+}`} />
+
+          <Code name="pages/student" code={`import { useRef, useState } from 'react';
+import { useAtomValue } from 'jotai';
+import { studentAtom } from '@store/useAtom';
+import { useStudents } from '@hooks/useStudents';
+
+export default function Student() {
+
+  const students = useAtomValue(studentAtom)
+  const { addStudent,
+    updateStudent,
+    removeStudent,
+    removeAllStudents,
+    restoreAllStudents } = useStudents()
+  const studentNameRef = useRef()
+  const [edited, setEdited] = useState({ id: null, name: '', show: false })
+
   function handleAddStudent() {
     const value = studentNameRef.current.value
-    if (value !== "") {
-      setStudents([
-        ...students,
-        { name: value, id: Math.random() * 100 + '' },
-      ])
-    }
+    if (value !== "") addStudent(value)
     else alert("student name cannot empty !")
     studentNameRef.current.value = ''
   }
+
   function handleEditStudent(id, name) {
-    setEditedId(id)
-    setEditedName(name)
-    setShowEdit(true)
+    setEdited({ id: id, name: name, show: true })
   }
+
   function handleUpdateStudent() {
-    if (editedName === "") {
+    if (edited.name === "") {
       alert("student name cannot empty !")
     }
     else {
-      updateStudent(editedId, editedName)
-      setShowEdit(false)
-      setEditedId('')
-      setEditedName('')
+      updateStudent(edited.id, edited.name)
+      setEdited({ id: null, name: '', show: false })
     }
-  }
-  function handleRemoveStudent(id) {
-    removeStudent(id)
   }
 
   return (
@@ -200,7 +178,7 @@ export default function Student() {
         <li key={student.id}>
           {student.name}
           <button onClick={() => handleEditStudent(student.id, student.name)}>✏️</button>
-          <button onClick={() => handleRemoveStudent(student.id)}>X</button>
+          <button onClick={() => removeStudent(student.id)}>X</button>
         </li>
       )}
     </ul>
@@ -210,12 +188,11 @@ export default function Student() {
       <input ref={studentNameRef} />
       <button onClick={handleAddStudent}>add student</button>
     </div>
-    {
-      showEdit &&
+    {edited.show &&
       <>
         <p>Edit student</p>
         <div>
-          <input value={editedName} onChange={(e) => setEditedName(e.target.value)}/>
+          <input value={edited.name} onChange={(e) => setEdited({ ...edited, name: e.target.value })}/>
           <button onClick={handleUpdateStudent}>Update student</button>
           <button onClick={() => setShowEdit(false)}>Cancel</button>
         </div>
