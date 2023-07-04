@@ -3,8 +3,7 @@ import Navbar from '@components/Navbar';
 import Code from '@components/Code';
 import { useRef } from 'react';
 import { useAtom } from 'jotai';
-import { pokemonAtom } from '@store/useAtom';
-import { usePokemons } from '@hooks/usePokemons';
+import { pokemonAtom, usePokemons } from '@store/useAtom';
 
 export default function Pokemon() {
 
@@ -58,7 +57,8 @@ export default function Pokemon() {
             <button onClick={restoreAllPokemons} className="bg-teal-500 hover:bg-teal-600 transition-all cursor-pointer text-white rounded py-1 px-2 text-sm mr-2">restore all</button>
           </div>
 
-          <Code name="store/useAtom" code={`import { atomWithStorage } from 'jotai/utils';
+          <Code name="store/useAtom" code={`import { useAtom } from 'jotai';
+import { atomWithStorage } from 'jotai/utils';
 
 export const pokemonData = [
   { id: 1, name: "🐞 Bulbasaur" },
@@ -67,12 +67,10 @@ export const pokemonData = [
   { id: 4, name: "🐉 Charmander" },
   { id: 5, name: "🐧 Charmeleon" }
 ]
-export const pokemonAtom = atomWithStorage('pokemon', pokemonData)`} />
 
-          <Code name="hooks/usePokemons" code={`import { useAtom } from 'jotai';
-import { pokemonAtom, pokemonData } from '@store/useAtom';
+export const pokemonAtom = atomWithStorage('pokemon', pokemonData)
 
-export function useStudents() {
+export function usePokemons() {
   const [pokemons, setPokemons] = useAtom(pokemonAtom)
   function addPokemon(name) {
     setPokemons([
@@ -96,10 +94,10 @@ export function useStudents() {
     restoreAllPokemons
   }
 }`} />
+
           <Code name="pages/pokemon" code={`import { useRef } from 'react';
 import { useAtom } from 'jotai';
-import { pokemonAtom } from '@store/useAtom';
-import { usePokemons } from '@hooks/usePokemons';
+import { pokemonAtom, usePokemons } from '@store/useAtom';
 
 export default function Pokemon() {
 

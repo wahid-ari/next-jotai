@@ -1,4 +1,4 @@
-import { atom } from 'jotai'
+import { atom, useAtom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
 
 export const countAtom = atom(0)
@@ -23,6 +23,7 @@ export const repoAtom = atom({
   hasErrors: false
 })
 
+// POKEMON
 export const pokemonData = [
   { id: 1, name: "🐞 Bulbasaur" },
   { id: 2, name: "🦖 Ivysaur" },
@@ -30,8 +31,36 @@ export const pokemonData = [
   { id: 4, name: "🐉 Charmander" },
   { id: 5, name: "🐧 Charmeleon" }
 ]
+
 export const pokemonAtom = atomWithStorage('pokemon', pokemonData)
 
+// or use code from hooks/usePokemons
+export function usePokemons() {
+  const [pokemons, setPokemons] = useAtom(pokemonAtom)
+  function addPokemon(name) {
+    setPokemons([
+      ...pokemons,
+      { name: name, id: Math.random() * 100 },
+    ])
+  }
+  function removePokemon(id) {
+    setPokemons(pokemons.filter((pokemon) => pokemon.id !== id))
+  }
+  function removeAllPokemons() {
+    setPokemons([])
+  }
+  function restoreAllPokemons() {
+    setPokemons(pokemonData)
+  }
+  return {
+    addPokemon,
+    removePokemon,
+    removeAllPokemons,
+    restoreAllPokemons
+  }
+}
+
+// STUDENT 
 export const studentData = [
   { id: '1', name: 'Aaron Saunders' },
   { id: '2', name: 'Andrea Saunders' },

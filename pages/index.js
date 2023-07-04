@@ -15,10 +15,10 @@ import {
   userAtom,
   repoAtom,
   pokemonAtom,
+  usePokemons,
   studentAtom
 } from '@store/useAtom';
 import { useStudents } from '@hooks/useStudents';
-import { usePokemons } from '@hooks/usePokemons';
 
 export default function Home() {
   const [count, setCount] = useAtom(countAtom)

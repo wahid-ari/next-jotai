@@ -1,6 +1,7 @@
 import { useAtom } from 'jotai';
 import { pokemonAtom, pokemonData } from '@store/useAtom';
 
+// or put this code in store/useAtom
 export function usePokemons() {
   const [pokemons, setPokemons] = useAtom(pokemonAtom)
   function addPokemon(name) {
